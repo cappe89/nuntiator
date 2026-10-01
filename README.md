@@ -1,8 +1,11 @@
 # Nuntiator 🕊️
 
+[![NuGet](https://img.shields.io/nuget/v/Nuntiator.svg)](https://www.nuget.org/packages/Nuntiator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 **Nuntiator** è una libreria leggera, moderna e ad alte prestazioni per **.NET 10** che replica e semplifica il pattern mediatore di **MediatR**.
 
-Offre il disaccoppiamento tra mittente e ricevitore mediante command e command handler, registrazione automatica tramite Dependency Injection e supporto completo a pipeline di middleware personalizzabili prima e dopo l'esecuzione degli handler.
+Offre il disaccoppiamento tra mittente e ricevitore mediante command e command handler, registrazione automatica tramite Dependency Injection, pipeline di middleware personalizzabili ed estensibili, e **Roslyn Analyzers** per la validazione a tempo di compilazione.
 
 ---
 
@@ -13,42 +16,71 @@ Offre il disaccoppiamento tra mittente e ricevitore mediante command e command h
 - 🔌 **Pipeline & Middleware**: Interfaccia `ICommandMiddleware<TCommand, TResponse>` (e alias `IPipelineBehavior<,>` per compatibilità con MediatR) con supporto a middleware open-generic e closed-generic, short-circuit ed exception handling.
 - 📦 **Dependency Injection Automatica**: Metodo di estensione `services.AddNuntiator(...)` con scansione automatica degli assembly e gestione dei cicli di vita (`Transient`, `Scoped`, `Singleton`).
 - ⚡ **Alte Prestazioni**: Cache concorrente degli invoker generici (`PipelineInvokerCache`), eliminando overhead di reflection a runtime durante il dispatch.
-- 🧪 **Test Unitari Completi**: Suite di test xUnit inclusa che copre tutti i casi d'uso (handler, middleware, DI, pipeline order, short-circuit, eccezioni e struct `Unit`).
+- 🔍 **Roslyn Analyzers a Compile-Time**: Validazione statica in tempo reale nell'IDE e durante il build per prevenire errori di configurazione:
+  - `NUNT002`: Verifica che i tipi passati a `AddMiddleware` implementino effettivamente `ICommandMiddleware<,>` o `IPipelineBehavior<,>`.
+  - `NUNT003`: Segnala handler duplicati registrati per lo stesso comando nello stesso progetto.
+- 🧪 **Test Unitari Completi**: Suite di 44 test xUnit che copre tutti i casi d'uso (handler, middleware, DI, pipeline order, short-circuit, eccezioni, struct `Unit` e tutti gli analyzer Roslyn).
+
+---
+
+## 📦 Installazione
+
+Puoi installare Nuntiator tramite la .NET CLI o il Package Manager:
+
+**.NET CLI:**
+```bash
+dotnet add package Nuntiator
+```
+
+**Package Manager Console:**
+```powershell
+Install-Package Nuntiator
+```
 
 ---
 
 ## 📁 Struttura del Progetto
 
 ```text
-├── Nuntiator.sln
+├── Nuntiator.slnx
 ├── src/
-│   └── Nuntiator/
-│       ├── Abstractions/
-│       │   ├── ICommand.cs
-│       │   ├── ICommandHandler.cs
-│       │   ├── ICommandMiddleware.cs
-│       │   ├── IPipelineBehavior.cs
-│       │   ├── INuntiator.cs
-│       │   └── Unit.cs
-│       ├── DependencyInjection/
-│       │   ├── NuntiatorConfiguration.cs
-│       │   └── ServiceCollectionExtensions.cs
-│       ├── Exceptions/
-│       │   ├── NuntiatorException.cs
-│       │   └── HandlerNotFoundException.cs
-│       ├── Internal/
-│       │   ├── PipelineInvoker.cs
-│       │   └── VoidCommandHandlerAdapter.cs
-│       ├── Nuntiator.cs
-│       └── Nuntiator.csproj
+│   ├── Nuntiator/
+│   │   ├── Abstractions/
+│   │   │   ├── ICommand.cs
+│   │   │   ├── ICommandHandler.cs
+│   │   │   ├── ICommandMiddleware.cs
+│   │   │   ├── IPipelineBehavior.cs
+│   │   │   ├── INuntiator.cs
+│   │   │   └── Unit.cs
+│   │   ├── DependencyInjection/
+│   │   │   ├── NuntiatorConfiguration.cs
+│   │   │   └── ServiceCollectionExtensions.cs
+│   │   ├── Exceptions/
+│   │   │   ├── NuntiatorException.cs
+│   │   │   └── HandlerNotFoundException.cs
+│   │   ├── Internal/
+│   │   │   ├── PipelineInvoker.cs
+│   │   │   └── VoidCommandHandlerAdapter.cs
+│   │   ├── Nuntiator.cs
+│   │   └── Nuntiator.csproj
+│   └── Nuntiator.Analyzers/
+│       ├── DiagnosticIds.cs
+│       ├── InvalidMiddlewareTypeAnalyzer.cs      <- Diagnostica NUNT002
+│       ├── DuplicateCommandHandlerAnalyzer.cs    <- Diagnostica NUNT003
+│       └── Nuntiator.Analyzers.csproj
 └── tests/
-    └── Nuntiator.Tests/
-        ├── CommandsTests.cs
-        ├── DependencyInjectionTests.cs
-        ├── MiddlewareTests.cs
-        ├── UnitTests.cs
-        ├── TestFixtures.cs
-        └── Nuntiator.Tests.csproj
+    ├── Nuntiator.Tests/
+    │   ├── CommandsTests.cs
+    │   ├── DependencyInjectionTests.cs
+    │   ├── MiddlewareTests.cs
+    │   ├── UnitTests.cs
+    │   ├── TestFixtures.cs
+    │   └── Nuntiator.Tests.csproj
+    └── Nuntiator.Analyzers.Tests/
+        ├── InvalidMiddlewareTypeAnalyzerTests.cs
+        ├── DuplicateCommandHandlerAnalyzerTests.cs
+        ├── AnalyzerTestHelper.cs
+        └── Nuntiator.Analyzers.Tests.csproj
 ```
 
 ---
@@ -83,7 +115,6 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand, int>
 {
     public async Task<int> HandleAsync(CreateUserCommand command, CancellationToken cancellationToken = default)
     {
-        // Logica di creazione utente
         await Task.Delay(10, cancellationToken);
         return 42; // Id utente creato
     }
@@ -98,7 +129,6 @@ public class SendWelcomeEmailCommandHandler : ICommandHandler<SendWelcomeEmailCo
 {
     public async Task HandleAsync(SendWelcomeEmailCommand command, CancellationToken cancellationToken = default)
     {
-        // Logica di invio email
         await Task.Delay(10, cancellationToken);
     }
 }
@@ -132,25 +162,6 @@ public class LoggingMiddleware<TCommand, TResponse> : ICommandMiddleware<TComman
 }
 ```
 
-#### Esempio: Short-Circuiting Middleware
-```csharp
-public class ValidationMiddleware : ICommandMiddleware<CreateUserCommand, int>
-{
-    public async Task<int> HandleAsync(
-        CreateUserCommand command,
-        CommandHandlerDelegate<int> next,
-        CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(command.Username))
-        {
-            throw new ArgumentException("Username non può essere vuoto.");
-        }
-
-        return await next();
-    }
-}
-```
-
 ---
 
 ### 4. Registrazione in Dependency Injection
@@ -163,7 +174,6 @@ builder.Services.AddNuntiator(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
     cfg.AddOpenMiddleware(typeof(LoggingMiddleware<,>));
-    cfg.AddMiddleware<ValidationMiddleware>();
     // cfg.Lifetime = ServiceLifetime.Scoped; // Default: Transient
 });
 
@@ -175,7 +185,7 @@ builder.Services.AddNuntiator(typeof(Program));
 
 ### 5. Invocazione con `INuntiator`
 
-Nei tuoi controller, endpoint Minimal API o servizi di background:
+Nei controller, endpoint Minimal API o worker services:
 
 ```csharp
 app.MapPost("/users", async (CreateUserCommand cmd, INuntiator nuntiator) =>
@@ -195,10 +205,29 @@ app.MapPost("/welcome", async (SendWelcomeEmailCommand cmd, INuntiator nuntiator
 
 ---
 
+## 🔍 Roslyn Analyzers
+
+La libreria include analizzatori statici a tempo di compilazione:
+
+| ID | Severità | Descrizione |
+|---|---|---|
+| **`NUNT002`** | `Error` | Segnala immediatamente se un tipo passato a `AddMiddleware` o `AddOpenMiddleware` non implementa l'interfaccia middleware corretta. |
+| **`NUNT003`** | `Warning` | Rileva se esistono più classi handler per lo stesso comando nello stesso progetto, prevenendo comportamenti non deterministici a runtime. |
+
+Gli analyzer sono compilati con supporto multi-target (`net10.0` e `netstandard2.0`) per garantire piena compatibilità sia con il compilatore di .NET 10 sia con gli host IDE (Visual Studio, VS Code, JetBrains Rider). Quando il pacchetto NuGet `Nuntiator` viene installato, gli analyzer operano automaticamente come dipendenza silenziosa (`analyzers/dotnet/cs`).
+
+---
+
 ## 🧪 Esecuzione dei Test
 
-Tutti i test unitari possono essere eseguiti con il comando .NET CLI:
+Tutti i 44 test unitari possono essere eseguiti con il comando .NET CLI:
 
 ```bash
 dotnet test
+```
+
+Risultato:
+```text
+Passed!  - Failed: 0, Passed: 35, Skipped: 0, Total: 35 - Nuntiator.Tests.dll (net10.0)
+Passed!  - Failed: 0, Passed:  9, Skipped: 0, Total:  9 - Nuntiator.Analyzers.Tests.dll (net10.0)
 ```

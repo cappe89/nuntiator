@@ -85,12 +85,15 @@ public sealed class InvalidMiddlewareTypeAnalyzer : DiagnosticAnalyzer
             if (firstArg is TypeOfExpressionSyntax typeOfExpression)
             {
                 var typeInfo = context.SemanticModel.GetTypeInfo(typeOfExpression.Type, context.CancellationToken);
-                candidateType = typeInfo.Type;
+                candidateType = typeInfo.Type ?? context.SemanticModel.GetSymbolInfo(typeOfExpression.Type, context.CancellationToken).Symbol as ITypeSymbol;
                 diagnosticLocation = typeOfExpression.GetLocation();
             }
         }
 
-        if (candidateType == null || diagnosticLocation == null || candidateType.TypeKind == TypeKind.Error)
+        if (candidateType == null ||
+            diagnosticLocation == null ||
+            candidateType.TypeKind == TypeKind.Error ||
+            candidateType.TypeKind == TypeKind.TypeParameter)
         {
             return;
         }
@@ -109,12 +112,14 @@ public sealed class InvalidMiddlewareTypeAnalyzer : DiagnosticAnalyzer
 
     private static bool ImplementsMiddlewareInterface(ITypeSymbol typeSymbol)
     {
-        if (IsMiddlewareInterface(typeSymbol))
+        var targetType = typeSymbol.OriginalDefinition;
+
+        if (IsMiddlewareInterface(targetType))
         {
             return true;
         }
 
-        foreach (var iface in typeSymbol.AllInterfaces)
+        foreach (var iface in targetType.AllInterfaces)
         {
             if (IsMiddlewareInterface(iface))
             {
