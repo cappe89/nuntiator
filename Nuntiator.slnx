@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/Nuntiator.SampleApi/Nuntiator.SampleApi.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Nuntiator.Analyzers/Nuntiator.Analyzers.csproj" />
     <Project Path="src/Nuntiator/Nuntiator.csproj" />

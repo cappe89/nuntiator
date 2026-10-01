@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="../../src/Nuntiator.Analyzers/Nuntiator.Analyzers.csproj" />
+  <Project Path="../../src/Nuntiator/Nuntiator.csproj" />
+  <Project Path="Nuntiator.SampleApi.csproj" />
+</Solution>

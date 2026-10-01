@@ -1,0 +1,6 @@
+@Nuntiator.SampleApi_HostAddress = http://localhost:5296
+
+GET {{Nuntiator.SampleApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
