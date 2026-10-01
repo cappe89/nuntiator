@@ -3,29 +3,29 @@
 [![NuGet](https://img.shields.io/nuget/v/Nuntiator.svg)](https://www.nuget.org/packages/Nuntiator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**Nuntiator** è una libreria leggera, moderna e ad alte prestazioni per **.NET 10** che replica e semplifica il pattern mediatore di **MediatR**.
+**Nuntiator** is a lightweight, modern, and high-performance library for **.NET 10** that replicates and simplifies the mediator pattern of **MediatR**.
 
-Offre il disaccoppiamento tra mittente e ricevitore mediante command e command handler, registrazione automatica tramite Dependency Injection, pipeline di middleware personalizzabili ed estensibili, e **Roslyn Analyzers** per la validazione a tempo di compilazione.
-
----
-
-## 🚀 Caratteristiche Principali
-
-- 🎯 **Command con e senza risposta**: Interfacce `ICommand<TResponse>` e `ICommand` (void/Unit).
-- ⚙️ **Command Handler dedicati**: `ICommandHandler<TCommand, TResponse>` e `ICommandHandler<TCommand>` asincroni con supporto a `CancellationToken`.
-- 🔌 **Pipeline & Middleware**: Interfaccia `ICommandMiddleware<TCommand, TResponse>` (e alias `IPipelineBehavior<,>` per compatibilità con MediatR) con supporto a middleware open-generic e closed-generic, short-circuit ed exception handling.
-- 📦 **Dependency Injection Automatica**: Metodo di estensione `services.AddNuntiator(...)` con scansione automatica degli assembly e gestione dei cicli di vita (`Transient`, `Scoped`, `Singleton`).
-- ⚡ **Alte Prestazioni**: Cache concorrente degli invoker generici (`PipelineInvokerCache`), eliminando overhead di reflection a runtime durante il dispatch.
-- 🔍 **Roslyn Analyzers a Compile-Time**: Validazione statica in tempo reale nell'IDE e durante il build per prevenire errori di configurazione:
-  - `NUNT002`: Verifica che i tipi passati a `AddMiddleware` implementino effettivamente `ICommandMiddleware<,>` o `IPipelineBehavior<,>`.
-  - `NUNT003`: Segnala handler duplicati registrati per lo stesso comando nello stesso progetto.
-- 🧪 **Test Unitari Completi**: Suite di 44 test xUnit che copre tutti i casi d'uso (handler, middleware, DI, pipeline order, short-circuit, eccezioni, struct `Unit` e tutti gli analyzer Roslyn).
+It provides decoupling between sender and receiver using commands and command handlers, automatic registration via Dependency Injection, customizable and extensible middleware pipelines, and **Roslyn Analyzers** for compile-time validation.
 
 ---
 
-## 📦 Installazione
+## 🚀 Key Features
 
-Puoi installare Nuntiator tramite la .NET CLI o il Package Manager:
+- 🎯 **Commands with and without response**: `ICommand<TResponse>` and `ICommand` (void/Unit) interfaces.
+- ⚙️ **Dedicated Command Handlers**: Async `ICommandHandler<TCommand, TResponse>` and `ICommandHandler<TCommand>` with `CancellationToken` support.
+- 🔌 **Pipeline & Middleware**: `ICommandMiddleware<TCommand, TResponse>` interface (and `IPipelineBehavior<,>` alias for MediatR compatibility) with support for open-generic and closed-generic middlewares, short-circuiting, and exception handling.
+- 📦 **Automatic Dependency Injection**: `services.AddNuntiator(...)` extension method with automatic assembly scanning and lifetime management (`Transient`, `Scoped`, `Singleton`).
+- ⚡ **High Performance**: Concurrent generic invoker caching (`PipelineInvokerCache`), eliminating runtime reflection overhead during command dispatch.
+- 🔍 **Compile-Time Roslyn Analyzers**: Real-time static analysis in the IDE and during build to prevent configuration errors:
+  - `NUNT002`: Verifies that types passed to `AddMiddleware` implement `ICommandMiddleware<,>` or `IPipelineBehavior<,>`.
+  - `NUNT003`: Reports duplicate handler classes registered for the same command within the same project.
+- 🧪 **Comprehensive Unit Tests**: Suite of 44 xUnit tests covering all use cases (handlers, middlewares, DI, pipeline execution order, short-circuiting, exceptions, `Unit` struct, and all Roslyn analyzers).
+
+---
+
+## 📦 Installation
+
+You can install Nuntiator via the .NET CLI or Package Manager:
 
 **.NET CLI:**
 ```bash
@@ -39,7 +39,7 @@ Install-Package Nuntiator
 
 ---
 
-## 📁 Struttura del Progetto
+## 📁 Project Structure
 
 ```text
 ├── Nuntiator.slnx
@@ -65,8 +65,8 @@ Install-Package Nuntiator
 │   │   └── Nuntiator.csproj
 │   └── Nuntiator.Analyzers/
 │       ├── DiagnosticIds.cs
-│       ├── InvalidMiddlewareTypeAnalyzer.cs      <- Diagnostica NUNT002
-│       ├── DuplicateCommandHandlerAnalyzer.cs    <- Diagnostica NUNT003
+│       ├── InvalidMiddlewareTypeAnalyzer.cs      <- Diagnostic NUNT002
+│       ├── DuplicateCommandHandlerAnalyzer.cs    <- Diagnostic NUNT003
 │       └── Nuntiator.Analyzers.csproj
 └── tests/
     ├── Nuntiator.Tests/
@@ -85,18 +85,18 @@ Install-Package Nuntiator
 
 ---
 
-## 🛠️ Guida all'Uso
+## 🛠️ Usage Guide
 
-### 1. Definizione dei Command
+### 1. Defining Commands
 
-#### Command con risposta:
+#### Command with response:
 ```csharp
 using Nuntiator;
 
 public record CreateUserCommand(string Username, string Email) : ICommand<int>;
 ```
 
-#### Command senza risposta (void):
+#### Command without response (void):
 ```csharp
 using Nuntiator;
 
@@ -105,9 +105,9 @@ public record SendWelcomeEmailCommand(string Email) : ICommand;
 
 ---
 
-### 2. Creazione dei Command Handler
+### 2. Creating Command Handlers
 
-#### Handler con risposta:
+#### Handler with response:
 ```csharp
 using Nuntiator;
 
@@ -116,12 +116,12 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand, int>
     public async Task<int> HandleAsync(CreateUserCommand command, CancellationToken cancellationToken = default)
     {
         await Task.Delay(10, cancellationToken);
-        return 42; // Id utente creato
+        return 42; // Created user ID
     }
 }
 ```
 
-#### Handler senza risposta:
+#### Handler without response:
 ```csharp
 using Nuntiator;
 
@@ -136,11 +136,11 @@ public class SendWelcomeEmailCommandHandler : ICommandHandler<SendWelcomeEmailCo
 
 ---
 
-### 3. Creazione e Configurazione dei Middleware
+### 3. Creating and Configuring Middlewares
 
-I middleware consentono di intercettare l'esecuzione dei comandi prima e dopo l'handler, misurare i tempi di esecuzione, validare input, gestire transazioni o effettuare short-circuit.
+Middlewares allow you to intercept command execution before and after the handler, measure execution time, validate inputs, manage transactions, or perform short-circuiting.
 
-#### Esempio: Logging Middleware (Open-Generic)
+#### Example: Logging Middleware (Open-Generic)
 ```csharp
 using Nuntiator;
 
@@ -152,11 +152,11 @@ public class LoggingMiddleware<TCommand, TResponse> : ICommandMiddleware<TComman
         CommandHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken = default)
     {
-        Console.WriteLine($"[START] Esecuzione di {typeof(TCommand).Name}");
+        Console.WriteLine($"[START] Executing {typeof(TCommand).Name}");
 
         var response = await next();
 
-        Console.WriteLine($"[FINISH] Completato {typeof(TCommand).Name}");
+        Console.WriteLine($"[FINISH] Completed {typeof(TCommand).Name}");
         return response;
     }
 }
@@ -164,12 +164,12 @@ public class LoggingMiddleware<TCommand, TResponse> : ICommandMiddleware<TComman
 
 ---
 
-### 4. Registrazione in Dependency Injection
+### 4. Dependency Injection Registration
 
-Nel file `Program.cs` o nella configurazione dei servizi:
+In your `Program.cs` or service configuration:
 
 ```csharp
-// 1. Scansione automatica dell'assembly corrente con configurazione middleware
+// 1. Automatic scanning of the current assembly with middleware configuration
 builder.Services.AddNuntiator(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
@@ -177,15 +177,15 @@ builder.Services.AddNuntiator(cfg =>
     // cfg.Lifetime = ServiceLifetime.Scoped; // Default: Transient
 });
 
-// Oppure registrazione rapida passando uno o più assembly o marker types:
+// Or quick registration passing one or more assemblies or marker types:
 builder.Services.AddNuntiator(typeof(Program));
 ```
 
 ---
 
-### 5. Invocazione con `INuntiator`
+### 5. Dispatching with `INuntiator`
 
-Nei controller, endpoint Minimal API o worker services:
+In controllers, Minimal API endpoints, or worker services:
 
 ```csharp
 app.MapPost("/users", async (CreateUserCommand cmd, INuntiator nuntiator) =>
@@ -201,32 +201,32 @@ app.MapPost("/welcome", async (SendWelcomeEmailCommand cmd, INuntiator nuntiator
 });
 ```
 
-> 💡 **Compatibilità MediatR**: È possibile invocare sia `await nuntiator.SendAsync(...)` che `await nuntiator.Send(...)`.
+> 💡 **MediatR Compatibility**: You can invoke both `await nuntiator.SendAsync(...)` and `await nuntiator.Send(...)`.
 
 ---
 
-## 🔍 Roslyn Analyzers
+### 6. Compile-Time Roslyn Analyzers
 
-La libreria include analizzatori statici a tempo di compilazione:
+The library includes static analyzers to catch configuration issues during build time:
 
-| ID | Severità | Descrizione |
+| ID | Severity | Description |
 |---|---|---|
-| **`NUNT002`** | `Error` | Segnala immediatamente se un tipo passato a `AddMiddleware` o `AddOpenMiddleware` non implementa l'interfaccia middleware corretta. |
-| **`NUNT003`** | `Warning` | Rileva se esistono più classi handler per lo stesso comando nello stesso progetto, prevenendo comportamenti non deterministici a runtime. |
+| **`NUNT002`** | `Error` | Flags if a type passed to `AddMiddleware` or `AddOpenMiddleware` does not implement the correct middleware interface. |
+| **`NUNT003`** | `Warning` | Detects if multiple handler classes exist for the same command within the same project, preventing non-deterministic runtime behavior. |
 
-Gli analyzer sono compilati con supporto multi-target (`net10.0` e `netstandard2.0`) per garantire piena compatibilità sia con il compilatore di .NET 10 sia con gli host IDE (Visual Studio, VS Code, JetBrains Rider). Quando il pacchetto NuGet `Nuntiator` viene installato, gli analyzer operano automaticamente come dipendenza silenziosa (`analyzers/dotnet/cs`).
+The analyzers are multi-targeted (`net10.0` and `netstandard2.0`) to ensure full compatibility with both the .NET 10 compiler and IDE hosts (Visual Studio, VS Code, JetBrains Rider). When the `Nuntiator` NuGet package is installed, the analyzers operate automatically as a silent analyzer dependency (`analyzers/dotnet/cs`).
 
 ---
 
-## 🧪 Esecuzione dei Test
+## 🧪 Running Tests
 
-Tutti i 44 test unitari possono essere eseguiti con il comando .NET CLI:
+All 44 unit tests can be executed using the .NET CLI:
 
 ```bash
 dotnet test
 ```
 
-Risultato:
+Output:
 ```text
 Passed!  - Failed: 0, Passed: 35, Skipped: 0, Total: 35 - Nuntiator.Tests.dll (net10.0)
 Passed!  - Failed: 0, Passed:  9, Skipped: 0, Total:  9 - Nuntiator.Analyzers.Tests.dll (net10.0)
