@@ -1,8 +1,10 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Nuntiator.Analyzers/Nuntiator.Analyzers.csproj" />
     <Project Path="src/Nuntiator/Nuntiator.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Nuntiator.Analyzers.Tests/Nuntiator.Analyzers.Tests.csproj" />
     <Project Path="tests/Nuntiator.Tests/Nuntiator.Tests.csproj" />
   </Folder>
 </Solution>
