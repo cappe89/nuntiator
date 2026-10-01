@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nuntiator/Nuntiator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Nuntiator.Tests/Nuntiator.Tests.csproj" />
+  </Folder>
+</Solution>
