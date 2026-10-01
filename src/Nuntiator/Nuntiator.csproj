@@ -10,7 +10,7 @@
     <!-- Package metadata -->
     <PackageId>Nuntiator</PackageId>
     <Version>1.0.0</Version>
-    <Authors>Nuntiator</Authors>
+    <Authors>Alessandro Cappelletti</Authors>
     <Description>A lightweight, high-performance MediatR alternative for .NET 10 providing commands, command handlers, pipeline middlewares, and automatic dependency injection.</Description>
     <PackageTags>mediatr;cqrs;command;handler;pipeline;middleware;dotnet10</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
