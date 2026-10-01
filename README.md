@@ -202,8 +202,3 @@ Tutti i test unitari possono essere eseguiti con il comando .NET CLI:
 ```bash
 dotnet test
 ```
-
-Risultato:
-```text
-Passed!  - Failed: 0, Passed: 25, Skipped: 0, Total: 25 - Nuntiator.Tests.dll (net10.0)
-```
