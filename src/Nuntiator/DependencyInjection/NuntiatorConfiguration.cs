@@ -26,6 +26,13 @@ public class NuntiatorConfiguration
     /// </summary>
     public bool AutoRegisterMiddlewares { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets whether to eagerly validate command handler registrations (missing or ambiguous handlers)
+    /// when <c>AddNuntiator</c> is called, by building a temporary service provider. Default is <c>true</c>.
+    /// Set to <c>false</c> to defer validation to the first failing call at runtime (previous behavior).
+    /// </summary>
+    public bool ValidateOnStartup { get; set; } = true;
+
     public NuntiatorConfiguration(IServiceCollection services)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
@@ -106,7 +113,9 @@ public class NuntiatorConfiguration
             if (!hasMatchingInterface)
             {
                 throw new ArgumentException(
-                    $"Open generic type '{middlewareType.FullName}' must implement ICommandMiddleware<,> or IPipelineBehavior<,>.",
+                    $"Open generic type '{middlewareType.FullName}' must implement ICommandMiddleware<TCommand, TResponse> or IPipelineBehavior<TCommand, TResponse> (open generic arity 2). " +
+                    $"Found interfaces: [{DescribeInterfaces(middlewareType)}]. " +
+                    "If the type already implements one of these interfaces but with closed generic arguments, register it as a closed-generic middleware instead (e.g. AddMiddleware<TConcrete>()).",
                     nameof(middlewareType));
             }
 
@@ -133,12 +142,20 @@ public class NuntiatorConfiguration
             if (!registered)
             {
                 throw new ArgumentException(
-                    $"Type '{middlewareType.FullName}' does not implement ICommandMiddleware<TCommand, TResponse> or IPipelineBehavior<TCommand, TResponse>.",
+                    $"Type '{middlewareType.FullName}' does not implement ICommandMiddleware<TCommand, TResponse> or IPipelineBehavior<TCommand, TResponse>. " +
+                    $"Found interfaces: [{DescribeInterfaces(middlewareType)}]. " +
+                    "Ensure the type implements one of these interfaces with concrete (closed) generic arguments matching the command/response types.",
                     nameof(middlewareType));
             }
         }
 
         return this;
+    }
+
+    private static string DescribeInterfaces(Type type)
+    {
+        var interfaceNames = type.GetInterfaces().Select(i => i.Name).ToArray();
+        return interfaceNames.Length == 0 ? "none" : string.Join(", ", interfaceNames);
     }
 
     /// <summary>

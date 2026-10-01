@@ -24,11 +24,13 @@ public class HandlerNotFoundException : NuntiatorException
 
     private static string FormatMessage(Type commandType, Type? responseType)
     {
+        const string hint = "Make sure a handler class implementing the required ICommandHandler<,> or ICommandHandler<> interface exists and that its assembly was registered via RegisterServicesFromAssembly(Containing)/AddNuntiator.";
+
         if (responseType != null && responseType != typeof(Unit))
         {
-            return $"No handler of type ICommandHandler<{commandType.Name}, {responseType.Name}> was found for command '{commandType.FullName}'.";
+            return $"No handler of type ICommandHandler<{commandType.Name}, {responseType.Name}> was found for command '{commandType.FullName}'. {hint}";
         }
 
-        return $"No handler was found for command '{commandType.FullName}'.";
+        return $"No handler was found for command '{commandType.FullName}'. {hint}";
     }
 }

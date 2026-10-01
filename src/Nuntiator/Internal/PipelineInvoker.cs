@@ -19,11 +19,22 @@ internal sealed class PipelineInvoker<TCommand, TResponse> : IPipelineInvoker<TR
     public async Task<TResponse> InvokeAsync(IServiceProvider serviceProvider, object command, CancellationToken cancellationToken)
     {
         var typedCommand = (TCommand)command;
-        var handler = serviceProvider.GetService<ICommandHandler<TCommand, TResponse>>();
-        if (handler == null)
+        var handlers = serviceProvider.GetServices<ICommandHandler<TCommand, TResponse>>().ToArray();
+
+        if (handlers.Length == 0)
         {
             throw new HandlerNotFoundException(typeof(TCommand), typeof(TResponse));
         }
+
+        if (handlers.Length > 1)
+        {
+            throw new AmbiguousHandlerException(
+                typeof(TCommand),
+                typeof(TResponse),
+                handlers.Select(h => h.GetType()).ToArray());
+        }
+
+        var handler = handlers[0];
 
         var middlewares = serviceProvider.GetServices<ICommandMiddleware<TCommand, TResponse>>();
 

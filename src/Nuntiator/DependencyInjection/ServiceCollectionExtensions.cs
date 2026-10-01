@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -41,6 +42,11 @@ public static class ServiceCollectionExtensions
         services.TryAdd(new ServiceDescriptor(typeof(INuntiator), typeof(Nuntiator.Nuntiator), config.Lifetime));
 
         RegisterDiscoveredServices(services, config);
+
+        if (config.ValidateOnStartup)
+        {
+            ValidateRegistrations(services, config);
+        }
 
         return services;
     }
@@ -160,15 +166,88 @@ public static class ServiceCollectionExtensions
         }
     }
 
-    private static IEnumerable<Type> GetExportedTypesSafely(Assembly assembly)
+    private static void ValidateRegistrations(IServiceCollection services, NuntiatorConfiguration config)
     {
-        try
+        var commandTypes = new List<(Type CommandType, Type ResponseType)>();
+
+        foreach (var assembly in config.AssembliesToScan)
         {
-            return assembly.GetTypes();
+            foreach (var type in GetExportedTypesSafely(assembly))
+            {
+                if (!type.IsClass || type.IsAbstract || type.IsGenericTypeDefinition)
+                {
+                    continue;
+                }
+
+                foreach (var iface in type.GetInterfaces())
+                {
+                    if (iface.IsGenericType && iface.GetGenericTypeDefinition() == typeof(ICommand<>))
+                    {
+                        var responseType = iface.GetGenericArguments()[0];
+                        commandTypes.Add((type, responseType));
+                    }
+                }
+            }
         }
-        catch (ReflectionTypeLoadException ex)
+
+        if (commandTypes.Count == 0)
         {
-            return ex.Types.Where(t => t != null)!;
+            return;
         }
+
+        var errors = new List<string>();
+
+        foreach (var (commandType, responseType) in commandTypes.Distinct())
+        {
+            var handlerInterface = typeof(ICommandHandler<,>).MakeGenericType(commandType, responseType);
+            var handlerDescriptors = services.Where(d => d.ServiceType == handlerInterface).ToArray();
+
+            if (handlerDescriptors.Length == 0)
+            {
+                errors.Add($"No handler was found for command '{commandType.FullName}' (expected ICommandHandler<{commandType.Name}, {responseType.Name}>).");
+            }
+            else if (handlerDescriptors.Length > 1)
+            {
+                var handlerNames = string.Join(", ", handlerDescriptors.Select(d => $"'{DescribeImplementation(d)}'"));
+                errors.Add($"Multiple handlers were found for command '{commandType.FullName}': {handlerNames}. Only one handler per command is allowed.");
+            }
+        }
+
+        if (errors.Count > 0)
+        {
+            throw new NuntiatorConfigurationException(errors);
+        }
+    }
+
+    private static string DescribeImplementation(ServiceDescriptor descriptor)
+    {
+        if (descriptor.ImplementationType != null)
+        {
+            return descriptor.ImplementationType.FullName ?? descriptor.ImplementationType.Name;
+        }
+
+        if (descriptor.ImplementationInstance != null)
+        {
+            return descriptor.ImplementationInstance.GetType().FullName ?? "instance";
+        }
+
+        return "factory-provided implementation";
+    }
+
+    private static readonly ConcurrentDictionary<Assembly, Type[]> ScannedTypesCache = new();
+
+    private static Type[] GetExportedTypesSafely(Assembly assembly)
+    {
+        return ScannedTypesCache.GetOrAdd(assembly, static a =>
+        {
+            try
+            {
+                return a.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                return ex.Types.Where(t => t != null).ToArray()!;
+            }
+        });
     }
 }

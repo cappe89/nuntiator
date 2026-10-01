@@ -12,6 +12,8 @@ public class MiddlewareTests
         services.AddSingleton(tracker);
         services.AddNuntiator(cfg =>
         {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
             cfg.RegisterServicesFromAssembly(typeof(MiddlewareTests).Assembly);
             cfg.AddOpenMiddleware(typeof(FirstLoggingMiddleware<,>));
         });
@@ -36,6 +38,8 @@ public class MiddlewareTests
         services.AddSingleton(tracker);
         services.AddNuntiator(cfg =>
         {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
             cfg.RegisterServicesFromAssembly(typeof(MiddlewareTests).Assembly);
             cfg.AddMiddleware(typeof(FirstLoggingMiddleware<,>));
             cfg.AddMiddleware(typeof(SecondLoggingMiddleware<,>));
@@ -62,6 +66,8 @@ public class MiddlewareTests
         services.AddSingleton(tracker);
         services.AddNuntiator(cfg =>
         {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
             cfg.RegisterServicesFromAssembly(typeof(MiddlewareTests).Assembly);
             cfg.AddMiddleware(typeof(FirstLoggingMiddleware<,>));
         });
@@ -85,6 +91,8 @@ public class MiddlewareTests
         services.AddSingleton(tracker);
         services.AddNuntiator(cfg =>
         {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
             cfg.RegisterServicesFromAssembly(typeof(MiddlewareTests).Assembly);
             cfg.AddMiddleware<ShortCircuitingMiddleware>();
         });
@@ -115,6 +123,8 @@ public class MiddlewareTests
         services.AddSingleton(tracker);
         services.AddNuntiator(cfg =>
         {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
             cfg.RegisterServicesFromAssembly(typeof(MiddlewareTests).Assembly);
             cfg.AddMiddleware(typeof(ExceptionHandlingMiddleware<,>));
         });
@@ -136,6 +146,8 @@ public class MiddlewareTests
         services.AddSingleton(tracker);
         services.AddNuntiator(cfg =>
         {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
             cfg.RegisterServicesFromAssembly(typeof(MiddlewareTests).Assembly);
             cfg.AddOpenBehavior(typeof(SamplePipelineBehavior<,>));
         });

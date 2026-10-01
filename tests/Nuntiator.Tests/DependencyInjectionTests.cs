@@ -9,7 +9,12 @@ public class DependencyInjectionTests
     {
         var services = new ServiceCollection();
         services.AddSingleton(new ExecutionTracker());
-        services.AddNuntiator(typeof(DependencyInjectionTests));
+        services.AddNuntiator(cfg =>
+        {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
+            cfg.RegisterServicesFromAssemblyContaining(typeof(DependencyInjectionTests));
+        });
 
         var provider = services.BuildServiceProvider();
 
@@ -31,7 +36,12 @@ public class DependencyInjectionTests
     {
         var services = new ServiceCollection();
         services.AddSingleton(new ExecutionTracker());
-        services.AddNuntiator(typeof(DependencyInjectionTests).Assembly);
+        services.AddNuntiator(cfg =>
+        {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjectionTests).Assembly);
+        });
 
         var provider = services.BuildServiceProvider();
         var nuntiator = provider.GetService<INuntiator>();
@@ -44,7 +54,12 @@ public class DependencyInjectionTests
     {
         var services = new ServiceCollection();
         services.AddSingleton(new ExecutionTracker());
-        services.AddNuntiator();
+        services.AddNuntiator(cfg =>
+        {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjectionTests).Assembly);
+        });
 
         var provider = services.BuildServiceProvider();
         var nuntiator = provider.GetService<INuntiator>();
@@ -59,6 +74,8 @@ public class DependencyInjectionTests
         services.AddSingleton(new ExecutionTracker());
         services.AddNuntiator(cfg =>
         {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjectionTests).Assembly);
             cfg.Lifetime = ServiceLifetime.Scoped;
         });
@@ -90,6 +107,8 @@ public class DependencyInjectionTests
         services.AddSingleton(new ExecutionTracker());
         services.AddNuntiator(cfg =>
         {
+            // Scans the full test assembly, which intentionally includes UnhandledCommand without a handler.
+            cfg.ValidateOnStartup = false;
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjectionTests).Assembly);
             cfg.Lifetime = ServiceLifetime.Transient;
         });

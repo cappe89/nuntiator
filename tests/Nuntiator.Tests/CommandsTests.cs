@@ -14,6 +14,9 @@ public class CommandsTests
         services.AddSingleton(_tracker);
         services.AddNuntiator(cfg =>
         {
+            // This fixture intentionally scans an assembly containing UnhandledCommand (no registered handler)
+            // to exercise runtime HandlerNotFoundException behavior, so eager startup validation is disabled here.
+            cfg.ValidateOnStartup = false;
             cfg.RegisterServicesFromAssembly(typeof(CommandsTests).Assembly);
         });
 
